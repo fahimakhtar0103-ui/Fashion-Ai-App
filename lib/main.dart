@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'update_gate.dart';
+
 void main() {
   runApp(const FashionAiApp());
 }
@@ -117,7 +119,7 @@ class FashionAiApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AppShell(),
+      home: const UpdateGate(child: AppShell()),
     );
   }
 }
