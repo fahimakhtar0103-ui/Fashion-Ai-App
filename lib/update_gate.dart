@@ -4,39 +4,43 @@ import 'package:flutter/material.dart';
 
 import 'app_update_service.dart';
 
-class UpdateGate extends StatefulWidget {
-  const UpdateGate({super.key, required this.child});
+class AppUpdateUi {
+  static final AppUpdateService _service = AppUpdateService();
 
-  final Widget child;
-
-  @override
-  State<UpdateGate> createState() => _UpdateGateState();
-}
-
-class _UpdateGateState extends State<UpdateGate> {
-  final AppUpdateService _service = AppUpdateService();
-  bool _checked = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
-  }
-
-  Future<void> _check() async {
-    if (_checked || !Platform.isAndroid) return;
-    _checked = true;
+  static Future<void> check(
+    BuildContext context, {
+    bool showUpToDate = false,
+  }) async {
+    if (!Platform.isAndroid) {
+      if (showUpToDate && context.mounted) {
+        _message(context, 'iPhone updates are handled through TestFlight.');
+      }
+      return;
+    }
 
     try {
       final update = await _service.checkForUpdate();
-      if (!mounted || update == null) return;
-      await _showUpdateDialog(update);
+      if (!context.mounted) return;
+
+      if (update == null) {
+        if (showUpToDate) {
+          _message(context, 'You already have the latest Android build.');
+        }
+        return;
+      }
+
+      await _showUpdateDialog(context, update);
     } catch (_) {
-      // Update checks should never block normal app startup.
+      if (showUpToDate && context.mounted) {
+        _message(context, 'Could not check for updates right now.');
+      }
     }
   }
 
-  Future<void> _showUpdateDialog(AppUpdateInfo update) {
+  static Future<void> _showUpdateDialog(
+    BuildContext context,
+    AppUpdateInfo update,
+  ) {
     return showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -65,7 +69,7 @@ class _UpdateGateState extends State<UpdateGate> {
             FilledButton.icon(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                _downloadAndInstall(update);
+                _downloadAndInstall(context, update);
               },
               icon: const Icon(Icons.download_rounded),
               label: const Text('Update now'),
@@ -76,10 +80,13 @@ class _UpdateGateState extends State<UpdateGate> {
     );
   }
 
-  Future<void> _downloadAndInstall(AppUpdateInfo update) async {
+  static Future<void> _downloadAndInstall(
+    BuildContext context,
+    AppUpdateInfo update,
+  ) async {
     final progress = ValueNotifier<double>(0);
 
-    if (mounted) {
+    if (context.mounted) {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -117,23 +124,55 @@ class _UpdateGateState extends State<UpdateGate> {
         update,
         onProgress: (value) => progress.value = value,
       );
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
       await _service.openInstaller(path);
     } catch (error) {
-      if (mounted) {
+      if (context.mounted) {
         Navigator.of(context, rootNavigator: true).maybePop();
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text('Update failed: $error'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        _message(context, 'Update failed: $error');
       }
     } finally {
       progress.dispose();
     }
+  }
+
+  static void _message(BuildContext context, String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(text),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+}
+
+class UpdateGate extends StatefulWidget {
+  const UpdateGate({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<UpdateGate> createState() => _UpdateGateState();
+}
+
+class _UpdateGateState extends State<UpdateGate> {
+  bool _checked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
+  }
+
+  Future<void> _check() async {
+    if (_checked) return;
+    _checked = true;
+    await AppUpdateUi.check(context);
   }
 
   @override
