@@ -273,7 +273,7 @@ class _CreateReelScreenState extends State<CreateReelScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: DropdownButtonFormField<String>(
-            value: template,
+            initialValue: template,
             items: const [
               'Premium Cinematic',
               'Classic Catalogue',
@@ -328,7 +328,7 @@ class _CreateReelScreenState extends State<CreateReelScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 30),
+        SizedBox(height: 30),
       ],
     );
   }
@@ -496,10 +496,10 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return const ListView(
       children: [
-        const PageHeader('Settings', 'Brand, export and app preferences.'),
-        const SettingsGroup(
+        PageHeader('Settings', 'Brand, export and app preferences.'),
+        SettingsGroup(
           title: 'Brand',
           items: [
             SettingsItem(Icons.storefront_outlined, 'Brand profile', 'Logo, store name and CTA'),
@@ -507,7 +507,7 @@ class SettingsScreen extends StatelessWidget {
             SettingsItem(Icons.music_note_outlined, 'Music preference', 'Default reel music style'),
           ],
         ),
-        const SettingsGroup(
+        SettingsGroup(
           title: 'Export',
           items: [
             SettingsItem(Icons.high_quality_outlined, 'Default quality', 'Standard 720p'),
@@ -515,7 +515,7 @@ class SettingsScreen extends StatelessWidget {
             SettingsItem(Icons.download_outlined, 'Download settings', 'Watermark and file naming'),
           ],
         ),
-        const SettingsGroup(
+        SettingsGroup(
           title: 'Coming later',
           items: [
             SettingsItem(Icons.cloud_outlined, 'Supabase', 'Backend not connected yet'),
