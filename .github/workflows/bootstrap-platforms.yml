@@ -1,0 +1,36 @@
+name: Bootstrap Android and iOS
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - ".github/workflows/bootstrap-platforms.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate native platform projects
+        run: flutter create . --platforms=android,ios --project-name=fashion_ai_app
+
+      - name: Commit generated Android and iOS folders
+        run: |
+          git config user.name "Fashion AI Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add android ios
+          git diff --cached --quiet && exit 0
+          git commit -m "Bootstrap Android and iOS platform projects"
+          git push
