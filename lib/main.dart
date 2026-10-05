@@ -2505,7 +2505,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsConnectionTile(
                 icon: Icons.cloud_outlined,
                 title: 'Supabase',
-                status: 'Not connected',
+                status: 'Connected',
               ),
               _PanelDivider(),
               _SettingsConnectionTile(
