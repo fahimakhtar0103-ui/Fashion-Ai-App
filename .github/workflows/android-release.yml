@@ -1,0 +1,89 @@
+name: Publish Android In-App Update
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'assets/**'
+      - '.github/workflows/android-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check signing setup
+        id: signing
+        shell: bash
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && \
+             [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && \
+             [ -n "$ANDROID_KEY_ALIAS" ] && \
+             [ -n "$ANDROID_KEY_PASSWORD" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Android release signing secrets are not configured yet. Release publishing is skipped."
+          fi
+
+      - name: Set up Flutter
+        if: steps.signing.outputs.ready == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get packages
+        if: steps.signing.outputs.ready == 'true'
+        run: flutter pub get
+
+      - name: Configure stable Android signing
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Analyze
+        if: steps.signing.outputs.ready == 'true'
+        run: flutter analyze --no-fatal-infos
+
+      - name: Build signed update APK
+        if: steps.signing.outputs.ready == 'true'
+        run: |
+          flutter build apk --release \
+            --build-number="$GITHUB_RUN_NUMBER" \
+            --build-name="0.1.$GITHUB_RUN_NUMBER"
+
+      - name: Publish latest GitHub release
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="android-$GITHUB_RUN_NUMBER"
+          cp build/app/outputs/flutter-apk/app-release.apk /tmp/fashion-ai-app.apk
+          gh release create "$TAG" /tmp/fashion-ai-app.apk \
+            --title "Fashion AI Android $TAG" \
+            --notes "Latest Fashion AI development build. Open the installed Android app to receive future update prompts." \
+            --latest
