@@ -328,7 +328,7 @@ class _CreateReelScreenState extends State<CreateReelScreen> {
             ),
           ),
         ),
-        SizedBox(height: 30),
+        const SizedBox(height: 30),
       ],
     );
   }
@@ -496,7 +496,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ListView(
+    return ListView(
       children: [
         PageHeader('Settings', 'Brand, export and app preferences.'),
         SettingsGroup(
