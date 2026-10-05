@@ -234,6 +234,7 @@ class _CreateReelScreenState extends State<CreateReelScreen> {
   String category = 'Saree';
   String quality = 'Standard';
   String template = 'Premium Cinematic';
+  bool hasPhotos = false;
 
   @override
   Widget build(BuildContext context) {
@@ -242,22 +243,42 @@ class _CreateReelScreenState extends State<CreateReelScreen> {
         const PageHeader('Create Reel', 'Upload product photos and choose your reel style.'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            height: 190,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: const Color(0xFFE5E3EA)),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.cloud_upload_outlined, size: 46),
-                SizedBox(height: 10),
-                Text('Add product photos', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                SizedBox(height: 4),
-                Text('Front, back and detail photos work best', style: TextStyle(color: Colors.black54)),
-              ],
+          child: InkWell(
+            borderRadius: BorderRadius.circular(26),
+            onTap: () => setState(() => hasPhotos = !hasPhotos),
+            child: Container(
+              height: 190,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: hasPhotos ? Theme.of(context).colorScheme.primary : const Color(0xFFE5E3EA),
+                  width: hasPhotos ? 1.6 : 1,
+                ),
+              ),
+              child: hasPhotos
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: Row(
+                        children: [
+                          _MockPhoto(label: 'Front', icon: Icons.checkroom_outlined),
+                          SizedBox(width: 8),
+                          _MockPhoto(label: 'Back', icon: Icons.rotate_left_outlined),
+                          SizedBox(width: 8),
+                          _MockPhoto(label: 'Detail', icon: Icons.center_focus_strong_outlined),
+                        ],
+                      ),
+                    )
+                  : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.cloud_upload_outlined, size: 46),
+                        SizedBox(height: 10),
+                        Text('Add product photos', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                        SizedBox(height: 4),
+                        Text('Tap to add front, back and detail photos', style: TextStyle(color: Colors.black54)),
+                      ],
+                    ),
             ),
           ),
         ),
@@ -334,6 +355,36 @@ class _CreateReelScreenState extends State<CreateReelScreen> {
   }
 }
 
+class _MockPhoto extends StatelessWidget {
+  const _MockPhoto({required this.label, required this.icon});
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFF0E7FA), Color(0xFFE1C7F4)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: const Color(0xFF6D28D9), size: 30),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class HorizontalChoice extends StatelessWidget {
   const HorizontalChoice({super.key, required this.values, required this.selected, required this.onSelected});
   final List<String> values;
@@ -359,92 +410,164 @@ class HorizontalChoice extends StatelessWidget {
   }
 }
 
-class TemplatesScreen extends StatelessWidget {
+class TemplatesScreen extends StatefulWidget {
   const TemplatesScreen({super.key});
 
+  @override
+  State<TemplatesScreen> createState() => _TemplatesScreenState();
+}
+
+class _TemplatesScreenState extends State<TemplatesScreen> {
+  String query = '';
+  String filter = 'All';
+
   static const templates = [
-    ('Premium Cinematic', 'Luxury motion + elegant typography', Icons.movie_creation_outlined),
-    ('Classic Catalogue', 'Clean product-first showcase', Icons.grid_view_rounded),
-    ('Bridal Luxury', 'Rich bridal presentation', Icons.diamond_outlined),
-    ('Festive Glow', 'Bright festive movement', Icons.celebration_outlined),
-    ('3-Angle Short', 'Front, turn and detail', Icons.view_in_ar_outlined),
-    ('Offer Reel', 'Promotion + urgency CTA', Icons.local_offer_outlined),
-    ('Minimal Studio', 'Neutral background, soft motion', Icons.crop_portrait_outlined),
-    ('Royal Heritage', 'Traditional premium look', Icons.account_balance_outlined),
-    ('Soft Pastel', 'Light elegant social aesthetic', Icons.blur_on_outlined),
-    ('Runway Walk', 'Model walking presentation', Icons.directions_walk_outlined),
-    ('Detail Focus', 'Fabric and embroidery closeups', Icons.center_focus_strong_outlined),
-    ('New Arrival', 'Fast launch announcement', Icons.new_releases_outlined),
-    ('Wedding Edit', 'Wedding collection showcase', Icons.favorite_border),
-    ('Story Promo', 'Short 9:16 story format', Icons.smartphone_outlined),
-    ('Price Drop', 'Offer + price highlight', Icons.trending_down),
-    ('Premium Black', 'Dark luxury studio', Icons.dark_mode_outlined),
+    ('Premium Cinematic', 'Luxury motion + elegant typography', 'Premium', Icons.movie_creation_outlined),
+    ('Classic Catalogue', 'Clean product-first showcase', 'Catalogue', Icons.grid_view_rounded),
+    ('Bridal Luxury', 'Rich bridal presentation', 'Premium', Icons.diamond_outlined),
+    ('Festive Glow', 'Bright festive movement', 'Festive', Icons.celebration_outlined),
+    ('3-Angle Short', 'Front, turn and detail', 'Catalogue', Icons.view_in_ar_outlined),
+    ('Offer Reel', 'Promotion + urgency CTA', 'Offer', Icons.local_offer_outlined),
+    ('Minimal Studio', 'Neutral background, soft motion', 'Catalogue', Icons.crop_portrait_outlined),
+    ('Royal Heritage', 'Traditional premium look', 'Premium', Icons.account_balance_outlined),
+    ('Soft Pastel', 'Light elegant social aesthetic', 'Social', Icons.blur_on_outlined),
+    ('Runway Walk', 'Model walking presentation', 'Premium', Icons.directions_walk_outlined),
+    ('Detail Focus', 'Fabric and embroidery closeups', 'Catalogue', Icons.center_focus_strong_outlined),
+    ('New Arrival', 'Fast launch announcement', 'Social', Icons.new_releases_outlined),
+    ('Wedding Edit', 'Wedding collection showcase', 'Festive', Icons.favorite_border),
+    ('Story Promo', 'Short 9:16 story format', 'Social', Icons.smartphone_outlined),
+    ('Price Drop', 'Offer + price highlight', 'Offer', Icons.trending_down),
+    ('Premium Black', 'Dark luxury studio', 'Premium', Icons.dark_mode_outlined),
+    ('Saree Pallu Walk', 'Flow-focused saree movement', 'Premium', Icons.air_outlined),
+    ('Dupatta Flow', 'Natural dupatta motion showcase', 'Festive', Icons.waves_outlined),
+    ('Editorial Clean', 'Magazine-style minimal fashion', 'Premium', Icons.article_outlined),
+    ('Flash Sale', 'Fast hook + bold offer frames', 'Offer', Icons.flash_on_outlined),
+    ('Boutique Daily', 'Simple everyday social reel', 'Social', Icons.storefront_outlined),
+    ('Fabric Zoom', 'Texture and embroidery closeup', 'Catalogue', Icons.zoom_in_outlined),
+    ('Outdoor Chic', 'Lifestyle fashion presentation', 'Social', Icons.park_outlined),
+    ('Velvet Night', 'Deep luxury evening aesthetic', 'Premium', Icons.nightlight_outlined),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final filtered = templates.where((item) {
+      final q = query.trim().toLowerCase();
+      final matchesQuery = q.isEmpty || item.$1.toLowerCase().contains(q) || item.$2.toLowerCase().contains(q);
+      final matchesFilter = filter == 'All' || item.$3 == filter;
+      return matchesQuery && matchesFilter;
+    }).toList();
+
     return ListView(
       children: [
         const PageHeader('Templates', 'Choose a repeatable reel style for your products.'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: TextField(
-            decoration: InputDecoration(
+            onChanged: (value) => setState(() => query = value),
+            decoration: const InputDecoration(
               hintText: 'Search templates',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(onPressed: () {}, icon: const Icon(Icons.tune)),
+              prefixIcon: Icon(Icons.search),
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 42,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            scrollDirection: Axis.horizontal,
+            children: ['All', 'Premium', 'Festive', 'Catalogue', 'Offer', 'Social'].map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(item),
+                  selected: filter == item,
+                  onSelected: (_) => setState(() => filter = item),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
         const SizedBox(height: 18),
-        const SectionTitle('Popular'),
+        SectionTitle(filter == 'All' ? 'All templates' : filter),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: templates.length,
+            itemCount: filtered.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 1.02,
+              childAspectRatio: .93,
             ),
             itemBuilder: (_, i) {
-              final item = templates[i];
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(item.$3),
-                    ),
-                    const Spacer(),
-                    Text(item.$1, style: const TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 4),
-                    Text(item.$2, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                  ],
+              final item = filtered[i];
+              return InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Selected: ${item.$1}')),
+                ),
+                child: Ink(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                            child: Icon(item.$4),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF2ECFB),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: Text(item.$3, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800)),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(item.$1, style: const TextStyle(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 4),
+                      Text(item.$2, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                    ],
+                  ),
                 ),
               );
             },
           ),
         ),
+        if (filtered.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(30),
+            child: Center(child: Text('No template found.', style: TextStyle(color: Colors.black54))),
+          ),
         const SizedBox(height: 28),
         const SectionTitle('My Templates'),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22)),
-            child: const Row(
-              children: [
-                Icon(Icons.add_box_outlined),
-                SizedBox(width: 12),
-                Expanded(child: Text('Save your favourite style and reuse it on every new garment.', style: TextStyle(fontWeight: FontWeight.w600))),
-              ],
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Custom template builder will connect after frontend approval.')),
+            ),
+            child: Ink(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22)),
+              child: const Row(
+                children: [
+                  Icon(Icons.add_box_outlined),
+                  SizedBox(width: 12),
+                  Expanded(child: Text('Create and save your own repeatable style.', style: TextStyle(fontWeight: FontWeight.w600))),
+                  Icon(Icons.chevron_right),
+                ],
+              ),
             ),
           ),
         ),
@@ -453,11 +576,32 @@ class TemplatesScreen extends StatelessWidget {
   }
 }
 
-class LibraryScreen extends StatelessWidget {
+class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
 
   @override
+  State<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends State<LibraryScreen> {
+  String selected = 'All';
+
+  static const projects = [
+    ('Wine Silk Saree', 'Ready', Icons.play_circle_outline),
+    ('Royal Bridal Lehenga', 'Draft', Icons.edit_outlined),
+    ('Gold Festive Saree', 'Generating', Icons.hourglass_top),
+    ('Pastel Kurti Set', 'Ready', Icons.play_circle_outline),
+    ('Wedding Collection', 'Draft', Icons.edit_outlined),
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    final visible = projects.where((item) {
+      if (selected == 'All') return true;
+      if (selected == 'Ready') return item.$2 == 'Ready';
+      return item.$2 == 'Draft';
+    }).toList();
+
     return ListView(
       children: [
         const PageHeader('Library', 'Your generated reels, drafts and exports.'),
@@ -469,23 +613,28 @@ class LibraryScreen extends StatelessWidget {
               ButtonSegment(value: 'Ready', label: Text('Ready')),
               ButtonSegment(value: 'Drafts', label: Text('Drafts')),
             ],
-            selected: const {'All'},
-            onSelectionChanged: (_) {},
+            selected: {selected},
+            onSelectionChanged: (value) => setState(() => selected = value.first),
           ),
         ),
         const SizedBox(height: 18),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              ProjectTile(title: 'Wine Silk Saree', status: 'Ready', icon: Icons.play_circle_outline),
-              SizedBox(height: 10),
-              ProjectTile(title: 'Royal Bridal Lehenga', status: 'Draft', icon: Icons.edit_outlined),
-              SizedBox(height: 10),
-              ProjectTile(title: 'Gold Festive Saree', status: 'Generating', icon: Icons.hourglass_top),
+              for (var i = 0; i < visible.length; i++) ...[
+                ProjectTile(title: visible[i].$1, status: visible[i].$2, icon: visible[i].$3),
+                if (i != visible.length - 1) const SizedBox(height: 10),
+              ],
+              if (visible.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Text('Nothing here yet.', style: TextStyle(color: Colors.black54)),
+                ),
             ],
           ),
         ),
+        const SizedBox(height: 30),
       ],
     );
   }
