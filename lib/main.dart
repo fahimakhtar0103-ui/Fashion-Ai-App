@@ -2466,6 +2466,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const SizedBox(height: 24),
         const _SectionHeader(
+          title: 'App update',
+          subtitle: 'No more repeated GitHub APK downloads',
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: _SettingsPanel(
+            children: [
+              _SettingsNavTile(
+                icon: Icons.system_update_rounded,
+                title: 'Check for updates',
+                subtitle: 'Download and install the latest Android build',
+                onTap: () => AppUpdateUi.check(
+                  context,
+                  showUpToDate: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeader(
           title: 'Connections',
           subtitle: 'These will be connected after frontend approval',
         ),
@@ -2520,11 +2541,13 @@ class _SettingsNavTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -2555,7 +2578,7 @@ class _SettingsNavTile extends StatelessWidget {
         Icons.chevron_right_rounded,
         color: AppColors.muted,
       ),
-      onTap: () => _demoMessage(context, '$title opened.'),
+      onTap: onTap ?? () => _demoMessage(context, '$title opened.'),
     );
   }
 }
