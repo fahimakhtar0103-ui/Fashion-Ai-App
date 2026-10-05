@@ -33,38 +33,18 @@ jobs:
         run: |
           flutter build apk --release
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-release.apk dist/Fashion-AI-universal.apk
+          cp build/app/outputs/flutter-apk/app-release.apk dist/Fashion-AI.apk
 
-      - name: Build ABI-specific Android APKs
-        run: |
-          flutter build apk --release --split-per-abi
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/Fashion-AI-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/Fashion-AI-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/Fashion-AI-x86_64.apk
-
-      - name: Validate APK files
+      - name: Validate universal APK
         shell: bash
         run: |
-          for apk in dist/*.apk; do
-            echo "Validating $apk"
-            test -s "$apk"
-            unzip -t "$apk" >/dev/null
-          done
-          ls -lh dist
+          test -s dist/Fashion-AI.apk
+          unzip -t dist/Fashion-AI.apk >/dev/null
+          ls -lh dist/Fashion-AI.apk
 
-      - name: Add install note
-        run: |
-          cat > dist/INSTALL.txt <<'EOF'
-          Android install:
-          1. Extract this GitHub artifact ZIP first.
-          2. Try Fashion-AI-universal.apk.
-          3. If your phone says unsupported, use Fashion-AI-arm64-v8a.apk (most modern Android phones).
-          4. Allow "Install unknown apps" for the browser/file manager if Android asks.
-          EOF
-
-      - name: Upload Android APKs
+      - name: Upload universal Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: fashion-ai-android-apks
-          path: dist/*
+          name: Fashion-AI-Universal-APK
+          path: dist/Fashion-AI.apk
           if-no-files-found: error
