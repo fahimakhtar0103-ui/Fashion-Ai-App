@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'update_gate.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://qhyypknfeqycxmwoltju.supabase.co',
+    publishableKey: 'sb_publishable_1TbYi7FdraHgZzHnycXasw__wMnI-2b',
+  );
+
   runApp(const FashionAiApp());
 }
 
